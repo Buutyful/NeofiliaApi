@@ -1,0 +1,6 @@
+@NeofiliaApi_HostAddress = http://localhost:5085
+
+GET {{NeofiliaApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
