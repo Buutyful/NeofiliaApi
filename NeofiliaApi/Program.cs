@@ -1,4 +1,5 @@
 using NeofiliaApi.CollectionExtensions;
+using NeofiliaApi.EndPoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,5 +39,6 @@ app.UseStaticFiles();
 app.UseAuthentication(); 
 app.UseAuthorization();
 app.MapIdentityApi<ApplicationUser>();
+app.MapRewardEndPoints();
 
 app.Run();

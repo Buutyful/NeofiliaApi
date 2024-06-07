@@ -8,6 +8,7 @@ public static class ServicesExtentions
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddScoped<IRewardService, RewardService>();
+        services.AddSingleton<IRewardService, RewardService>();
         return services;
     }
 }

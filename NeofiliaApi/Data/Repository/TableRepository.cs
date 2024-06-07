@@ -15,12 +15,7 @@ public class TableRepository : ITableRepository
     {
         var tables = await _context.Tables.ToListAsync();
         return tables ?? [];
-    }
-    public async Task Add(PubTable table)
-    {
-        await _context.Tables.AddAsync(table);
-        await _context.SaveChangesAsync();
-    }
+    } 
     public async Task Delete(int id)
     {
         var row = _context.Tables
@@ -36,25 +31,9 @@ public class TableRepository : ITableRepository
         return table;
     }
 
-    public async Task Save(PubTable table)
+    public async Task Update(PubTable table)
     {
         _context.Tables.Update(table);
-       
-        var reward = table.CurrentTableReward;
-
-        if (reward != null)
-        {
-            // Check if the reward is new or already exists
-            if (_context.Entry(reward).State == EntityState.Detached)
-            {
-                _context.Rewards.Add(reward);
-            }
-            else
-            {
-                _context.Rewards.Update(reward);
-            }
-        }
-
         await _context.SaveChangesAsync();
     }
 }

@@ -9,16 +9,13 @@ namespace NeofiliaApi.Services;
 
 public class RewardService : IRewardService
 {
-    private readonly ITableRepository _tableRepository;
-    private readonly IRewardRepository _rewardRepository;    
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IHubContext<RewardHub> _hubContext;
 
-    public RewardService(ITableRepository tableRepository,
-                         IRewardRepository rewardRepository,
+    public RewardService(IServiceScopeFactory serviceScopeFactory,
                          IHubContext<RewardHub> hubContext)
     {
-        _tableRepository = tableRepository;
-        _rewardRepository = rewardRepository;
+        _serviceScopeFactory = serviceScopeFactory;
         _hubContext = hubContext;
 
         Events.Register<RewardGeneratedEvent>(HandleRewardGeneratedEvent);
@@ -26,26 +23,38 @@ public class RewardService : IRewardService
     }
     private async Task PersistTableAndRewardState(int tableId)
     {
-        var table = await _tableRepository.GetById(tableId)
+        using (var scope = _serviceScopeFactory.CreateScope())
+        {
+            var tableRepository = scope.ServiceProvider.GetRequiredService<ITableRepository>();
+            var rewardRepository = scope.ServiceProvider.GetRequiredService<IRewardRepository>();
+            var table = await tableRepository.GetById(tableId)
             ?? throw new ArgumentException("Invalid table ID");
 
-        var reward = table.CurrentTableReward
-             ?? throw new ArgumentException("reward not generated");
+            var reward = table.CurrentTableReward
+                 ?? throw new ArgumentException("reward not generated");
 
-        await _rewardRepository.Save(reward);
-        await _tableRepository.Save(table);
+            await rewardRepository.Create(reward);
+            await tableRepository.Update(table);
+        }
     }
 
+    //called by a rewardcontroller
     public async Task RedeemReward(Guid rewardId)
     {
-        var reward = await _rewardRepository.GetById(rewardId)
+        using (var scope = _serviceScopeFactory.CreateScope())
+        {
+            var tableRepository = scope.ServiceProvider.GetRequiredService<ITableRepository>();
+            var rewardRepository = scope.ServiceProvider.GetRequiredService<IRewardRepository>();
+            var reward = await rewardRepository.GetById(rewardId)
             ?? throw new ArgumentException("Invalid reward ID");
 
-        var table = await _tableRepository.GetById(reward.PubTableId)
-            ?? throw new ArgumentException("Invalid table ID");
+            var table = await tableRepository.GetById(reward.PubTableId)
+                ?? throw new ArgumentException("Invalid table ID");
 
-        table.RedeemReward();
-        await _tableRepository.Save(table);
+            table.RedeemReward();
+            await rewardRepository.Update(reward);
+            await tableRepository.Update(table);
+        }
     }
 
 

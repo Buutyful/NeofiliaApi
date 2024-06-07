@@ -13,7 +13,7 @@ public class RewardRepository : IRewardRepository
         _context = context;
     }
 
-    public async Task Add(TableReward reward)
+    public async Task Create(TableReward reward)
     {
         await _context.Rewards.AddAsync(reward);
         await _context.SaveChangesAsync();
@@ -31,8 +31,9 @@ public class RewardRepository : IRewardRepository
         return reward;
     }
 
-    public Task Save(TableReward reward)
+    public async Task Update(TableReward reward)
     {
-        throw new NotImplementedException();
+        _context.Rewards.Update(reward);
+        await _context.SaveChangesAsync();
     }
 }
