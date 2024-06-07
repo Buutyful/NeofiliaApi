@@ -31,6 +31,13 @@ public class RewardRepository : IRewardRepository
         return reward;
     }
 
+    public async Task<List<TableReward>> GetByTableId(int tableId)
+    {
+        var rewards = await _context.Rewards
+            .Where(r => r.PubTableId == tableId).ToListAsync();
+        return rewards;
+    }
+
     public async Task Update(TableReward reward)
     {
         _context.Rewards.Update(reward);

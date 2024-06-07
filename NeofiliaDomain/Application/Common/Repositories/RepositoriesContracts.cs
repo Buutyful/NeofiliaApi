@@ -10,8 +10,10 @@ public interface ITableRepository
 public interface IRewardRepository
 {
     Task<List<TableReward>> Get();
+    Task<List<TableReward>> GetByTableId(int tableId);
     Task Update(TableReward reward);
     Task Create(TableReward reward);
-    Task<TableReward?> GetById(Guid id);    
+    Task<TableReward?> GetById(Guid id);
+    
 }
 

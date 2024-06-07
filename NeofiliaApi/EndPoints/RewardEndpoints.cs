@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
-using NeofiliaApi.Services;
 using NeofiliaDomain;
 using NeofiliaDomain.Application.Common.Repositories;
 using NeofiliaDomain.Application.Common.Services;
-using System.Reflection.Metadata.Ecma335;
 
 namespace NeofiliaApi.EndPoints;
 
@@ -22,29 +20,35 @@ public static class RewardEndpoints
         group.MapGet("{id:guid}",
             async Task<Results<
                 Ok<RewardDto>,
-                NotFound>> (Guid id, IRewardRepository repo) =>
-        {
-            var reward = await repo.GetById(id);
-            return reward is null ?
-            TypedResults.NotFound() :
-            TypedResults.Ok(reward.ToDto());
-        });
+                    NotFound>> (Guid id, IRewardRepository repo) =>
+            {
+                var reward = await repo.GetById(id);
+                return reward is null ?
+                TypedResults.NotFound() :
+                TypedResults.Ok(reward.ToDto());
+            });
+        group.MapGet("{tableId:int}",
+           async (int tableId, IRewardRepository repo) =>
+           {
+               var rewards = await repo.GetByTableId(tableId);
+               return Results.Ok(rewards.Select(r => r.ToDto()));
+           });
 
         group.MapPost("{id:guid}", 
             async Task<Results<
                 Ok,
                 BadRequest>> (Guid id, IRewardService service) =>
-        {
-            try
             {
-                await service.RedeemReward(id);
-                return TypedResults.Ok();
-            }
-            catch (ArgumentException ex)
-            {
-                return TypedResults.BadRequest();
-            }
-        });
+                try
+                {
+                    await service.RedeemReward(id);
+                    return TypedResults.Ok();
+                }
+                catch (ArgumentException ex)
+                {
+                    return TypedResults.BadRequest();
+                }
+            });
     }
 }
 
