@@ -27,6 +27,7 @@ public static class RewardEndpoints
                 TypedResults.NotFound() :
                 TypedResults.Ok(reward.ToDto());
             });
+
         group.MapGet("{tableId:int}",
            async (int tableId, IRewardRepository repo) =>
            {
