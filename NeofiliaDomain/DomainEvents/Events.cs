@@ -5,16 +5,16 @@ public static class Events
 {
     private static readonly List<Delegate> handlers = [];
 
-    public static void Register<T>(Action<T> callback) where T : IDomainEvent
+    public static void Register<T>(Func<T, Task> callback) where T : IDomainEvent
     {
         handlers.Add(callback);
     }
 
-    public static void Raise<T>(T domainEvent) where T : IDomainEvent
+    public static async Task Raise<T>(T domainEvent) where T : IDomainEvent
     {
-        foreach (var handler in handlers.OfType<Action<T>>())
+        foreach (var handler in handlers.OfType<Func<T, Task>>())
         {
-            handler(domainEvent);
+            await handler(domainEvent);
         }
     }
 }

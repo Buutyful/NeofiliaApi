@@ -1,21 +1,19 @@
 ﻿using NeofiliaDomain.Application.Common.Repositories;
 using NeofiliaDomain.DomainEvents.Reward;
 using NeofiliaDomain.DomainEvents;
-using Microsoft.Extensions.DependencyInjection;
+using NeofiliaDomain.Application.Services.Reward;
 using NeofiliaDomain.Application.Common.Hubs;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace NeofiliaDomain.Application.Services.Reward;
-//singleton
+namespace NeofiliaApi.Services;
+
 public class RewardService : IRewardService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly IRewardHubService _rewardHubService;
 
-    public RewardService(IServiceScopeFactory serviceScopeFactory,
-                          IRewardHubService rewardHubService)
+    public RewardService(IServiceScopeFactory serviceScopeFactory)
     {
         _serviceScopeFactory = serviceScopeFactory;
-        _rewardHubService = rewardHubService;
 
         Events.Register<RewardGeneratedEvent>(HandleRewardGeneratedEventAsync);
         Events.Register<RewardRedeemedEvent>(HandleRewardRedeemedEventAsync);
@@ -52,7 +50,7 @@ public class RewardService : IRewardService
             var table = await tableRepository.GetById(reward.PubTableId)
                 ?? throw new ArgumentException("Invalid table ID");
 
-            table.RedeemReward();
+            await table.RedeemReward();
 
 
             await rewardRepository.Update(reward);
@@ -61,14 +59,22 @@ public class RewardService : IRewardService
     }
 
 
-    private async void HandleRewardGeneratedEventAsync(RewardGeneratedEvent domainEvent)
+    private async Task HandleRewardGeneratedEventAsync(RewardGeneratedEvent domainEvent)
     {
         await PersistTableAndRewardState(domainEvent.TableId);
-        await _rewardHubService.NotifyRewardGenerated(domainEvent.TableId);
+        using (var scope = _serviceScopeFactory.CreateScope())
+        {
+            var hubService = scope.ServiceProvider.GetRequiredService<IRewardHubService>();
+            await hubService.NotifyRewardGenerated(domainEvent.TableId);
+        }
     }
 
-    private async void HandleRewardRedeemedEventAsync(RewardRedeemedEvent domainEvent)
+    private async Task HandleRewardRedeemedEventAsync(RewardRedeemedEvent domainEvent)
     {
-        await _rewardHubService.NotifyRewardRedeemed(domainEvent.RewardId);
+        using (var scope = _serviceScopeFactory.CreateScope())
+        {
+            var hubService = scope.ServiceProvider.GetRequiredService<IRewardHubService>();
+            await hubService.NotifyRewardRedeemed(domainEvent.RewardId);
+        }
     }
 }

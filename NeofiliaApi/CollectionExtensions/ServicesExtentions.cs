@@ -1,4 +1,5 @@
 ﻿using NeofiliaApi.Hubs;
+using NeofiliaApi.Services;
 using NeofiliaDomain.Application.Common.Hubs;
 using NeofiliaDomain.Application.Services.Reward;
 

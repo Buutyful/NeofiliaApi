@@ -21,37 +21,38 @@ public class PubTable
     public Pub Pub { get; private set; } = null!;
 
     [NotMapped]
-    public int TableScore
-    {
-        get => _currentScore;
-        private set
-        {
-            _currentScore += value;
-            if (_currentScore >= _scoreCap)
-            {
-                GenerateReward();
-                _currentScore = 0;
-            }
-        }
-    }
+    public int TableScore => _currentScore;
+  
 
     public PubTable(int pubId)
     {
         PubId = pubId;
     }
-    public void GenerateReward()
-    {
-        CurrentTableReward = new TableReward(this.Id);
-        Events.Raise(new RewardGeneratedEvent(this.Id));
-    }
 
-    public void RedeemReward()
+    public async Task RedeemReward()
     {
         if (CurrentTableReward == null)
             throw new InvalidOperationException("No reward to redeem.");
 
         CurrentTableReward.Redeem();
-        Events.Raise(new RewardRedeemedEvent(CurrentTableReward.Id));
+        await Events.Raise(new RewardRedeemedEvent(CurrentTableReward.Id));
         CurrentTableReward = null;
     }
+
+    //TODO: implement real score system
+    public async Task UpdateScore(int value)
+    {
+        _currentScore += value;
+        if (_currentScore >= _scoreCap)
+        {
+            await GenerateReward();
+            _currentScore = 0;
+        }
+    }
+    private async Task GenerateReward()
+    {
+        CurrentTableReward = new TableReward(this.Id);
+        await Events.Raise(new RewardGeneratedEvent(this.Id));
+    }
+
 }
