@@ -1,5 +1,7 @@
 using NeofiliaApi.CollectionExtensions;
 using NeofiliaApi.EndPoints;
+using NeofiliaApi.Hubs;
+using NeofiliaDomain.Application.Common.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +41,9 @@ app.UseStaticFiles();
 app.UseAuthentication(); 
 app.UseAuthorization();
 app.MapIdentityApi<ApplicationUser>();
+//endpoints
 app.MapRewardEndPoints();
+//hubs
+app.MapHub<RewardHub>(RewardHub.HubUrl);
 
 app.Run();

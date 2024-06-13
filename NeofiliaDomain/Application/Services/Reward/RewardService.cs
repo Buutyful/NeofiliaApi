@@ -2,21 +2,20 @@
 using NeofiliaDomain.DomainEvents.Reward;
 using NeofiliaDomain.DomainEvents;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.SignalR;
-using NeofiliaDomain.Application.Hubs;
+using NeofiliaDomain.Application.Common.Hubs;
 
 namespace NeofiliaDomain.Application.Services.Reward;
-
+//singleton
 public class RewardService : IRewardService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly IHubContext<RewardHub, IRewardHub> _hubContext;
+    private readonly IRewardHubService _rewardHubService;
 
     public RewardService(IServiceScopeFactory serviceScopeFactory,
-                         IHubContext<RewardHub, IRewardHub> hubContext)
+                          IRewardHubService rewardHubService)
     {
         _serviceScopeFactory = serviceScopeFactory;
-        _hubContext = hubContext;
+        _rewardHubService = rewardHubService;
 
         Events.Register<RewardGeneratedEvent>(HandleRewardGeneratedEventAsync);
         Events.Register<RewardRedeemedEvent>(HandleRewardRedeemedEventAsync);
@@ -65,11 +64,11 @@ public class RewardService : IRewardService
     private async void HandleRewardGeneratedEventAsync(RewardGeneratedEvent domainEvent)
     {
         await PersistTableAndRewardState(domainEvent.TableId);
-        await _hubContext.Clients.All.RewardGenerated(domainEvent.TableId);
+        await _rewardHubService.NotifyRewardGenerated(domainEvent.TableId);
     }
 
     private async void HandleRewardRedeemedEventAsync(RewardRedeemedEvent domainEvent)
     {
-        await _hubContext.Clients.All.RewardRedeemed(domainEvent.RewardId);
+        await _rewardHubService.NotifyRewardRedeemed(domainEvent.RewardId);
     }
 }
