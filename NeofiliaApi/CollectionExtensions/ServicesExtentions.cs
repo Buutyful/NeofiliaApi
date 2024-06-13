@@ -1,5 +1,4 @@
-﻿using NeofiliaApi.Services;
-using NeofiliaDomain.Application.Common.Services;
+﻿using NeofiliaDomain.Application.Services.Reward;
 
 namespace NeofiliaApi.CollectionExtensions;
 

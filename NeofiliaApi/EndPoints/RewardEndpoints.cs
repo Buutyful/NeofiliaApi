@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using NeofiliaDomain;
 using NeofiliaDomain.Application.Common.Repositories;
-using NeofiliaDomain.Application.Common.Services;
+using NeofiliaDomain.Application.Services.Reward;
 
 namespace NeofiliaApi.EndPoints;
 
@@ -35,14 +35,15 @@ public static class RewardEndpoints
                return Results.Ok(rewards.Select(r => r.ToDto()));
            });
 
-        group.MapPost("{id:guid}", 
+        //TODO: this needs to be moved in a table endpont [post]/api/locals/{id}/tables/{id}/redeem
+        group.MapPost("{rewardId:Guid}", 
             async Task<Results<
                 Ok,
-                BadRequest>> (Guid id, IRewardService service) =>
+                BadRequest>> (Guid rewardId, IRewardService service) =>
             {
                 try
                 {
-                    await service.RedeemReward(id);
+                    await service.RedeemReward(rewardId);
                     return TypedResults.Ok();
                 }
                 catch (ArgumentException ex)

@@ -1,19 +1,19 @@
 ﻿using NeofiliaDomain.Application.Common.Repositories;
 using NeofiliaDomain.DomainEvents.Reward;
 using NeofiliaDomain.DomainEvents;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.SignalR;
-using NeofiliaApi.Hubs;
-using NeofiliaDomain.Application.Services.Reward;
+using NeofiliaDomain.Application.Hubs;
 
-namespace NeofiliaApi.Services;
+namespace NeofiliaDomain.Application.Services.Reward;
 
 public class RewardService : IRewardService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly IHubContext<RewardHub> _hubContext;
+    private readonly IHubContext<RewardHub, IRewardHub> _hubContext;
 
     public RewardService(IServiceScopeFactory serviceScopeFactory,
-                         IHubContext<RewardHub> hubContext)
+                         IHubContext<RewardHub, IRewardHub> hubContext)
     {
         _serviceScopeFactory = serviceScopeFactory;
         _hubContext = hubContext;
@@ -54,8 +54,8 @@ public class RewardService : IRewardService
                 ?? throw new ArgumentException("Invalid table ID");
 
             table.RedeemReward();
-            
-           
+
+
             await rewardRepository.Update(reward);
             await tableRepository.Update(table);
         }
@@ -65,11 +65,11 @@ public class RewardService : IRewardService
     private async void HandleRewardGeneratedEventAsync(RewardGeneratedEvent domainEvent)
     {
         await PersistTableAndRewardState(domainEvent.TableId);
-        await _hubContext.Clients.All.SendAsync("RewardGenerated", domainEvent.TableId);
+        await _hubContext.Clients.All.RewardGenerated(domainEvent.TableId);
     }
 
     private async void HandleRewardRedeemedEventAsync(RewardRedeemedEvent domainEvent)
     {
-        await _hubContext.Clients.All.SendAsync("RewardRedeemed", domainEvent.RewardId);
+        await _hubContext.Clients.All.RewardRedeemed(domainEvent.RewardId);
     }
 }

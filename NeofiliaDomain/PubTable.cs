@@ -52,5 +52,6 @@ public class PubTable
 
         CurrentTableReward.Redeem();
         Events.Raise(new RewardRedeemedEvent(CurrentTableReward.Id));
+        CurrentTableReward = null;
     }
 }
